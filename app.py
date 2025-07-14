@@ -25,7 +25,6 @@ def processar_bipagem():
     st.session_state.codigo_bipado = ""
 
 
-# Campo pra digitar/bipar código (estilizado)
 st.markdown(
     """
     <style>
@@ -47,20 +46,22 @@ st.text_input(
     placeholder="Escaneie o código de barras ou QR..."
 )
 
-# Pega os dados do banco
 df = obter_etiquetas()
 
-# Verifica se o DataFrame está vazio e se coluna 'codigo' existe
+
+df = df.rename(columns={
+    "A02_data": "Data",
+    "Notafiscal_01_A01_id": "Nota Fiscal"
+})
+
 if not df.empty and "codigo" in df.columns:
     df["Tipo"] = df["codigo"].apply(classificar_codigo)
     df["Duplicado"] = df.duplicated(subset=["codigo"], keep=False)
 else:
-    # Cria colunas vazias compatíveis com o tamanho do df
     df["Tipo"] = pd.Series([pd.NA] * len(df), index=df.index)
     df["Duplicado"] = pd.Series([False] * len(df), index=df.index)
 
 
-# Função para destacar linhas duplicadas
 def destacar_duplicados(row):
     if row["Duplicado"]:
         return ['background-color: #8B0000'] * len(row)
@@ -68,7 +69,6 @@ def destacar_duplicados(row):
         return [''] * len(row)
 
 
-# Layout com duas colunas: tabela (70%) e contagem (30%)
 col1, col2 = st.columns([7, 3])
 
 with col1:
@@ -86,12 +86,11 @@ with col2:
     contagem_html = """
     <div style="display: flex; flex-direction: column; gap: 14px; font-family: 'Segoe UI', sans-serif;">
     """
-    # Evita erro caso coluna 'Tipo' esteja vazia
     tipos_contagem = df["Tipo"].value_counts() if "Tipo" in df.columns else pd.Series(dtype=int)
 
     for tipo, qtd in tipos_contagem.items():
         contagem_html += f"""
-        <div style="
+         <div style="
             padding: 16px 20px;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.06);

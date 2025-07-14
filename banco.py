@@ -8,7 +8,7 @@ def conectar():
         host="localhost",
         user="root",        # Altere se necessário
         password="",        # Altere se necessário
-        database="db_clickpresilhas"
+        database="db_click"
     )
 
 # 📥 Inserir uma nova bipagem (etiqueta)
