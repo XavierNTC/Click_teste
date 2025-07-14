@@ -81,7 +81,7 @@ with col1:
     )
 
 agora = datetime.datetime.now()
-data_hora_str = agora.strftime("%d/%m/%Y %H:%M")
+data_hora_str = agora.strftime("%d/%m/%Y")
 
 with col2:
     contagem_html = """
@@ -110,7 +110,7 @@ with col2:
     contagem_html += "</div>"
     st.markdown(contagem_html, unsafe_allow_html=True)
 
-    st.markdown(f"<div style='color:red;'>Data e hora atual: {data_hora_str}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='color:red;'>Data: {data_hora_str}</div>", unsafe_allow_html=True)
 
 # Botão para excluir duplicados
 if st.button("Excluir Códigos Duplicados"):
