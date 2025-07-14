@@ -47,6 +47,7 @@ st.text_input(
 )
 
 df = obter_etiquetas()
+df["Tipo"] = df["codigo"].apply(classificar_codigo)
 
 
 df = df.rename(columns={
@@ -89,7 +90,7 @@ with col2:
     tipos_contagem = df["Tipo"].value_counts() if "Tipo" in df.columns else pd.Series(dtype=int)
 
     for tipo, qtd in tipos_contagem.items():
-        contagem_html += f"""
+        contagem_html += f""""
          <div style="
             padding: 16px 20px;
             border-radius: 10px;
@@ -100,13 +101,14 @@ with col2:
             border: 1px solid #fff;
             background-color: #20232a;
             color: white;
-        ">
+        "">
             <span style="font-size: 20px;">{tipo}</span>
             <span style="font-size: 34px; font-weight: bold;">{qtd}</span>
         </div>
         """
 
     contagem_html += "</div>"
+    st.markdown(contagem_html, unsafe_allow_html=True)
 
     st.markdown(f"<div style='color:red;'>Data e hora atual: {data_hora_str}</div>", unsafe_allow_html=True)
 
