@@ -2,7 +2,6 @@ import mysql.connector
 from datetime import datetime
 import pandas as pd
 
-# 🔌 Conexão com o banco de dados MySQL
 def conectar():
     return mysql.connector.connect(
         host="localhost",
@@ -11,7 +10,6 @@ def conectar():
         database="db_click"
     )
 
-# 📥 Inserir uma nova bipagem (etiqueta)
 def inserir_etiqueta(codigo, nota_id):
     conn = conectar()
     cursor = conn.cursor()
@@ -26,14 +24,12 @@ def inserir_etiqueta(codigo, nota_id):
     cursor.close()
     conn.close()
 
-# 📊 Obter todas as bipagens (etiquetas)
 def obter_etiquetas():
     conn = conectar()
     df = pd.read_sql("SELECT * FROM etiqueta_02", conn)
     conn.close()
     return df
 
-# 🧹 Excluir duplicados (mantém a 1ª etiqueta com mesmo código)
 def excluir_duplicados_etiquetas():
     conn = conectar()
     cursor = conn.cursor()

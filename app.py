@@ -12,13 +12,11 @@ if "codigo_bipado" not in st.session_state:
     st.session_state.codigo_bipado = ""
 
 
-# Função que manda o código direto pro banco sem precisar botão
 def processar_bipagem():
     codigo = st.session_state.codigo_bipado.strip()
     if codigo == "":
         return
 
-    # ⚠️ Supondo nota_id = 1 como teste (depois você pode automatizar ou fazer input)
     inserir_etiqueta(codigo, nota_id=1)
 
     st.toast(f"Código '{codigo}' inserido com sucesso!", icon="✅")
@@ -75,7 +73,7 @@ col1, col2 = st.columns([7, 3])
 with col1:
     st.subheader("Etiquetas Registradas")
     st.dataframe(
-        df.iloc[::-1].style.apply(destacar_duplicados, axis=1),  # mostra últimas inserções em cima
+        df.iloc[::-1].style.apply(destacar_duplicados, axis=1),
         height=300,
         use_container_width=True
     )
@@ -112,7 +110,6 @@ with col2:
 
     st.markdown(f"<div style='color:red;'>Data: {data_hora_str}</div>", unsafe_allow_html=True)
 
-# Botão para excluir duplicados
 if st.button("Excluir Códigos Duplicados"):
     excluir_duplicados_etiquetas()
     st.success("Códigos duplicados removidos do banco!")
