@@ -12,11 +12,13 @@ if "codigo_bipado" not in st.session_state:
     st.session_state.codigo_bipado = ""
 
 
+# Função que manda o código direto pro banco sem precisar botão
 def processar_bipagem():
     codigo = st.session_state.codigo_bipado.strip()
     if codigo == "":
         return
 
+    # Supondo nota_id = 1 como teste
     inserir_etiqueta(codigo, nota_id=1)
 
     st.toast(f"Código '{codigo}' inserido com sucesso!", icon="✅")
@@ -73,13 +75,13 @@ col1, col2 = st.columns([7, 3])
 with col1:
     st.subheader("Etiquetas Registradas")
     st.dataframe(
-        df.iloc[::-1].style.apply(destacar_duplicados, axis=1),
+        df.iloc[::-1].style.apply(destacar_duplicados, axis=1),  # mostra últimas inserções em cima
         height=300,
         use_container_width=True
     )
 
 agora = datetime.datetime.now()
-data_hora_str = agora.strftime("%d/%m/%Y")
+data_hora_str = agora.strftime("%d/%m/%Y %H:%M")
 
 with col2:
     contagem_html = """
@@ -99,7 +101,7 @@ with col2:
             border: 1px solid #fff;
             background-color: #20232a;
             color: white;
-        "">
+        ""  >
             <span style="font-size: 20px;">{tipo}</span>
             <span style="font-size: 34px; font-weight: bold;">{qtd}</span>
         </div>
@@ -108,9 +110,10 @@ with col2:
     contagem_html += "</div>"
     st.markdown(contagem_html, unsafe_allow_html=True)
 
-    st.markdown(f"<div style='color:red;'>Data: {data_hora_str}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='color:red;'>Data e hora atual: {data_hora_str}</div>", unsafe_allow_html=True)
 
+# Botão para excluir duplicados
 if st.button("Excluir Códigos Duplicados"):
     excluir_duplicados_etiquetas()
-    st.success("Códigos duplicados removidos do banco!")
+    st.toast("Códigos duplicados removidos!", icon="✅")
 
