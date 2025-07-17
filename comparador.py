@@ -1,7 +1,7 @@
 import streamlit as st
 import pymysql
 import pandas as pd
-import xml.etree.ElementTree as ET
+import re
 from banco import conectar
 
 def verificar_codigos(codigos):
@@ -35,37 +35,45 @@ def verificar_codigos(codigos):
     conn.close()
     return pd.DataFrame(resultado)
 
-# Função para extrair códigos dos arquivos XML
-def extrair_codigo_xml(conteudo_xml):
+# Função para extrair códigos dos arquivos zpl
+def extrair_codigo_zpl(conteudo_bytes):
     try:
-        root = ET.fromstring(conteudo_xml)
-        # por exemplo se o código estiver em uma tag <codigo> dentro do XML
-        codigo = root.find('.//codigo')  # busca a tag 'codigo' em tudo
-        if codigo is not None and codigo.text:
-            return codigo.text.strip()
-        else:
-            return None
-    except ET.ParseError:
+        conteudo = conteudo_bytes.decode('utf-8', errors='ignore')
+
+        # Tenta extrair do código de barras ^FD>:45149061470^FS
+        procurar_etiqueta = re.search(r"\^FD>:\s*(\d{10,})\^FS", conteudo)
+        if procurar_etiqueta:
+            return procurar_etiqueta.group(1)
+
+        # Fallback: extrair do QR Code JSON {"id":"45149061470","t":"lm"}
+        procurar_qr = re.search(r'"id"\s*:\s*"(\d{10,})"', conteudo)
+        if procurar_qr:
+            return procurar_qr.group(1)
+
+        return None
+    except Exception:
         return None
 
-st.title("Verificação de Etiquetas no Banco")
+st.title("Verificação de Etiquetas (ZPL) no Banco")
 
-# Upload
-arquivos = st.file_uploader("Envie até 50 arquivos .xml", type="xml", accept_multiple_files=True)
+# Upload de arquivos ZPL
+arquivos = st.file_uploader("Envie até 50 arquivos .zpl", type="zpl", accept_multiple_files=True)
 
 if arquivos:
     if len(arquivos) > 50:
         st.warning("Máximo 50 arquivos por vez.")
     else:
         codigos = []
-        for xml_file in arquivos:
-            conteudo = xml_file.read()
-            codigo_extraido = extrair_codigo_xml(conteudo)
+        for zpl_file in arquivos:
+            conteudo = zpl_file.read()
+            codigo_extraido = extrair_codigo_zpl(conteudo)
             if codigo_extraido:
                 codigos.append(codigo_extraido)
 
         if not codigos:
             st.error("Nenhum código válido encontrado nos arquivos enviados.")
+            print(codigo_extraido)
+            print(conteudo)
         else:
             st.success(f"{len(codigos)} código(s) extraído(s). Verificando no banco...")
 

@@ -1,11 +1,12 @@
+from contextlib import _RedirectStream
 import streamlit as st
 import pandas as pd
 from banco import obter_etiquetas, excluir_duplicados_etiquetas, inserir_etiqueta
 from processamento import classificar_codigo
 import datetime
+import comparador
 
 st.set_page_config(page_title="Bipagem com Banco", layout="wide")
-
 st.title("Sistema de Bipagem com Banco de Dados")
 
 if "codigo_bipado" not in st.session_state:
