@@ -5,10 +5,29 @@ import pandas as pd
 def conectar():
     return mysql.connector.connect(
         host="localhost",
-        user="root",        # Altere se necessário
-        password="",        # Altere se necessário
+        user="root",        
+        password="",        
         database="db_click"
     )
+#função pra inserir a nota fiscal, botei p ser chamada na função de processar bipagem, que quando bipa ele ja insere lek
+def inserir_fisco():
+    conn = conectar()
+    cursor = conn.cursor()
+    data_atual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    query = """
+        INSERT INTO notafiscal_01 (Empresa_03_A03_id, A01_codigo, A01_data)
+        VALUES (%s, %s, %s)
+    """
+    valores = (1, "TEMP", data_atual)
+    cursor.execute(query, valores)
+    conn.commit()
+
+    nota_id = cursor.lastrowid
+
+    cursor.close()
+    conn.close()
+    return nota_id
 
 def inserir_etiqueta(codigo, nota_id):
     conn = conectar()

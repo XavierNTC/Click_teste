@@ -1,7 +1,7 @@
 from contextlib import _RedirectStream
 import streamlit as st
 import pandas as pd
-from banco import obter_etiquetas, excluir_duplicados_etiquetas, inserir_etiqueta
+from banco import obter_etiquetas, excluir_duplicados_etiquetas, inserir_etiqueta, inserir_fisco
 from processamento import classificar_codigo
 import datetime
 import comparador
@@ -19,12 +19,11 @@ def processar_bipagem():
     if codigo == "":
         return
 
-    # Supondo nota_id = 1 como teste
-    inserir_etiqueta(codigo, nota_id=1)
+    nota_id = inserir_fisco()  # cria a nota fiscal temporaria
+    inserir_etiqueta(codigo, nota_id)
 
     st.toast(f"Código '{codigo}' inserido com sucesso!", icon="✅")
     st.session_state.codigo_bipado = ""
-
 
 st.markdown(
     """
