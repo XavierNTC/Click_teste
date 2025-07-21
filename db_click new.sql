@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 17/07/2025 às 23:43
+-- Tempo de geração: 21/07/2025 às 20:36
 -- Versão do servidor: 10.4.32-MariaDB
 -- Versão do PHP: 8.2.12
 
@@ -20,6 +20,34 @@ SET time_zone = "+00:00";
 --
 -- Banco de dados: `db_click`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para tabela `comparacao_diaria_04`
+--
+
+CREATE TABLE `comparacao_diaria_04` (
+  `A04_id` int(11) NOT NULL,
+  `A04_codigo_barras` varchar(255) NOT NULL,
+  `A04_nota_fiscal` varchar(255) NOT NULL,
+  `A04_data` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `A04_situacao` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Despejando dados para a tabela `comparacao_diaria_04`
+--
+
+INSERT INTO `comparacao_diaria_04` (`A04_id`, `A04_codigo_barras`, `A04_nota_fiscal`, `A04_data`, `A04_situacao`) VALUES
+(1, '45149068888', '93211', '2025-07-21 13:55:11', ''),
+(2, '45149067777', '93277', '2025-07-21 13:55:11', ''),
+(3, '45149061470', '93232', '2025-07-21 13:55:11', ''),
+(4, '45149060987', '93245', '2025-07-21 14:11:25', ''),
+(5, '45149060999', '93299', '2025-07-21 14:35:30', ''),
+(6, '45149060000', '93000', '2025-07-21 14:45:05', ''),
+(7, '45149064444', '93444', '2025-07-21 15:19:23', ''),
+(8, '45149063333', '93333', '2025-07-21 15:32:40', '');
 
 -- --------------------------------------------------------
 
@@ -90,7 +118,13 @@ INSERT INTO `etiqueta_02` (`id`, `codigo`, `A02_data`, `Notafiscal_01_A01_id`) V
 (92, '45149061470', '2025-07-16 23:20:27', 1),
 (97, '1333', '2025-07-17 17:43:18', NULL),
 (98, '1345', '2025-07-17 17:43:22', NULL),
-(103, '45149067777', '2025-07-17 18:13:27', 4);
+(103, '45149067777', '2025-07-17 18:13:27', 4),
+(106, '45149068888', '2025-07-18 17:23:22', 7),
+(126, '45149060987', '2025-07-21 14:14:58', 27),
+(127, '45149060999', '2025-07-21 14:38:20', 29),
+(130, '45149060000', '2025-07-21 15:10:08', 36),
+(131, '45149064444', '2025-07-21 15:19:53', 37),
+(132, '45149064444', '2025-07-21 15:35:09', 37);
 
 -- --------------------------------------------------------
 
@@ -113,11 +147,43 @@ INSERT INTO `notafiscal_01` (`A01_id`, `Empresa_03_A03_id`, `A01_codigo`, `A01_d
 (1, 1, '93232', '2025-07-13 20:02:16'),
 (2, 1, 'TEMP', '2025-07-17 18:06:28'),
 (3, 1, 'TEMP', '2025-07-17 18:07:44'),
-(4, 1, '93277', '2025-07-17 18:13:27');
+(4, 1, '93277', '2025-07-17 18:13:27'),
+(5, 1, 'TEMP', '2025-07-18 13:22:52'),
+(6, 1, 'TEMP', '2025-07-18 17:11:46'),
+(7, 1, '93211', '2025-07-18 17:23:22'),
+(8, 1, 'TEMP', '2025-07-20 20:38:14'),
+(9, 1, 'TEMP', '2025-07-20 20:39:13'),
+(10, 1, 'TEMP', '2025-07-20 20:41:22'),
+(11, 1, 'TEMP', '2025-07-20 20:47:31'),
+(12, 1, 'TEMP', '2025-07-20 21:03:41'),
+(13, 1, 'TEMP', '2025-07-20 21:03:48'),
+(14, 1, 'TEMP', '2025-07-20 21:10:18'),
+(15, 1, 'TEMP', '2025-07-20 21:10:24'),
+(16, 1, 'TEMP', '2025-07-20 21:10:29'),
+(17, 1, 'TEMP', '2025-07-20 21:12:18'),
+(18, 1, 'TEMP', '2025-07-20 21:16:09'),
+(19, 1, 'TEMP', '2025-07-20 21:16:18'),
+(20, 1, 'TEMP', '2025-07-20 21:16:35'),
+(21, 1, 'TEMP', '2025-07-20 21:16:37'),
+(22, 1, 'TEMP', '2025-07-20 21:16:37'),
+(23, 1, 'TEMP', '2025-07-20 21:16:38'),
+(24, 1, 'TEMP', '2025-07-20 21:16:39'),
+(25, 1, 'TEMP', '2025-07-20 21:16:40'),
+(26, 1, 'TEMP', '2025-07-20 21:16:40'),
+(27, 1, 'TEMP', '2025-07-21 14:14:58'),
+(29, 1, 'TEMP', '2025-07-21 14:38:20'),
+(36, 1, '93000', '2025-07-21 15:10:08'),
+(37, 1, '93444', '2025-07-21 15:19:53');
 
 --
 -- Índices para tabelas despejadas
 --
+
+--
+-- Índices de tabela `comparacao_diaria_04`
+--
+ALTER TABLE `comparacao_diaria_04`
+  ADD PRIMARY KEY (`A04_id`);
 
 --
 -- Índices de tabela `empresa_03`
@@ -144,6 +210,12 @@ ALTER TABLE `notafiscal_01`
 --
 
 --
+-- AUTO_INCREMENT de tabela `comparacao_diaria_04`
+--
+ALTER TABLE `comparacao_diaria_04`
+  MODIFY `A04_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
 -- AUTO_INCREMENT de tabela `empresa_03`
 --
 ALTER TABLE `empresa_03`
@@ -153,13 +225,13 @@ ALTER TABLE `empresa_03`
 -- AUTO_INCREMENT de tabela `etiqueta_02`
 --
 ALTER TABLE `etiqueta_02`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=104;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=133;
 
 --
 -- AUTO_INCREMENT de tabela `notafiscal_01`
 --
 ALTER TABLE `notafiscal_01`
-  MODIFY `A01_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `A01_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- Restrições para tabelas despejadas

@@ -1,12 +1,12 @@
 from contextlib import _RedirectStream
 import streamlit as st
 import pandas as pd
-from banco import obter_etiquetas, excluir_duplicados_etiquetas, inserir_etiqueta, inserir_fisco
+from banco import obter_etiquetas, excluir_duplicados_etiquetas, inserir_etiqueta, inserir_fisco, obter_id_nf_do_codigo, conectar
 from processamento import classificar_codigo
 import datetime
 
-st.set_page_config(page_title="Bipagem com Banco", layout="wide")
-st.title("Sistema de Bipagem com Banco de Dados")
+st.set_page_config(page_title="Gerenciamento de bipagem", layout="wide")
+st.title("Gerenciamento de bipagem")
 
 if "codigo_bipado" not in st.session_state:
     st.session_state.codigo_bipado = ""
@@ -14,11 +14,19 @@ if "codigo_bipado" not in st.session_state:
 
 # Função que manda o código direto pro banco sem precisar botão
 def processar_bipagem():
+    conn = conectar()
+    cursor = conn.cursor()
+
     codigo = st.session_state.codigo_bipado.strip()
     if codigo == "":
         return
 
-    nota_id = inserir_fisco()  # cria a nota fiscal temporaria
+     # tenta achar NF vinculada ao código (de hoje)
+    nota_id = obter_id_nf_do_codigo(codigo)
+
+    if nota_id is None:
+        nota_id = inserir_fisco(cursor)  #se não, criar uma temporaria
+
     inserir_etiqueta(codigo, nota_id)
 
     st.toast(f"Código '{codigo}' inserido com sucesso!", icon="✅")

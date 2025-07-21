@@ -2,7 +2,10 @@ import streamlit as st
 import pymysql
 import pandas as pd
 import re
-from banco import conectar
+from banco import conectar, inserir_comparacao_diaria
+
+
+st.set_page_config(page_title="Comparação nota fiscal", layout="wide")
 
 def verificar_codigos(codigos):
     conn = conectar()
@@ -19,18 +22,18 @@ def verificar_codigos(codigos):
             WHERE e.codigo = %s
             LIMIT 1
         """
-        cursor.execute(query, (item['codigo'],))
+        cursor.execute(query, (codigo,))
         dados = cursor.fetchone()
 
         if dados:
             resultado.append({
                 'Código': dados[0],
-                'Nota Fiscal': dados[1] or 'Sem NF'
+                'Nota Fiscal': dados[1] or 'Sem NF',
             })
         else:
             resultado.append({
                 'Código': codigo,
-                'Nota Fiscal': 'NÃO ENCONTRADO'
+                'Nota Fiscal': 'NÃO ENCONTRADO',
             })
 
     conn.close()
@@ -70,7 +73,7 @@ def extrair_nf(conteudo_bytes):
     except Exception:
         return None
 
-st.title("Verificação de Etiquetas (ZPL) no Banco")
+st.title("Comparação Nota Fiscal")
 
 # Upload de arquivos ZPL
 arquivos = st.file_uploader("Envie arquivos .zpl", type="zpl", accept_multiple_files=True)
@@ -130,16 +133,47 @@ if arquivos:
         else:
             st.toast(f"{len(codigos)} código(s) extraído(s)")
             atualizar_nota_fiscal(codigos) #agora ele mostra as notas fiscais na tabela
+            inserir_comparacao_diaria(codigos)
             print(fisco_extraido)
 
-            df_resultado = verificar_codigos(codigos)
+           #df_resultado = verificar_codigos(codigos)
 
             def highlight_nao_encontrado(val):
                 if val == fisco_extraido:
                     return 'color: red; font-weight: bold'
                 return ''
 
-            st.dataframe(df_resultado.style.applymap(highlight_nao_encontrado, subset=['Nota Fiscal']))
+            #st.dataframe(df_resultado.style.applymap(highlight_nao_encontrado, subset=['Nota Fiscal']))
+
+st.subheader("Histórico de comparações de hoje")
+# mostra a tabela com o historico do dia, com codigo de barras, nota fiscal e situação.
+def carregar_historico_hoje():
+    conn = conectar()
+    query = """
+        SELECT cd.A04_codigo_barras, cd.A04_nota_fiscal, cd.A04_data,
+               CASE 
+                   WHEN e.codigo IS NOT NULL THEN 'ENCONTRADO'
+                   ELSE 'NÃO ENCONTRADO'
+               END AS Situacao
+        FROM comparacao_diaria_04 cd
+        LEFT JOIN etiqueta_02 e ON cd.A04_codigo_barras = e.codigo
+        WHERE DATE(cd.A04_data) = CURDATE()
+        ORDER BY cd.A04_data DESC
+    """
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df
+
+df_hoje = carregar_historico_hoje()
+
+#st.dataframe(df_hoje, use_container_width=True)
+
+def highlight_nao_encontrado(row):
+    if row['Situacao'] == 'NÃO ENCONTRADO':
+        return ['background-color: #8B0000'] * len(row)
+    return [''] * len(row)
+
+st.dataframe(df_hoje.style.apply(highlight_nao_encontrado, axis=1), use_container_width=True)
 
 
 

@@ -62,3 +62,65 @@ def excluir_duplicados_etiquetas():
     conn.commit()
     cursor.close()
     conn.close()
+
+#insere no banco as informações do zpl
+def inserir_comparacao_diaria(codigos):
+    conn = conectar()
+    cursor = conn.cursor()
+    
+    for item in codigos:
+        codigo = item['codigo']
+        nota_fiscal = item['fisco']
+        
+        # Checar se já foi inserido hoje (evita duplicatas)
+        cursor.execute("""
+            SELECT A04_id FROM comparacao_diaria_04
+            WHERE A04_codigo_barras = %s AND DATE(A04_data) = CURDATE()
+        """, (codigo,))
+        existe = cursor.fetchone()
+
+        if not existe:
+            cursor.execute("""
+                INSERT INTO comparacao_diaria_04 (A04_codigo_barras, A04_nota_fiscal)
+                VALUES (%s, %s)
+            """, (codigo, nota_fiscal))
+    
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def obter_id_nf_do_codigo(codigo, A03_id=1):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # Verifica se já tem NF associada ao código hoje
+    cursor.execute("""
+        SELECT A04_nota_fiscal
+        FROM comparacao_diaria_04
+        WHERE A04_codigo_barras = %s AND DATE(A04_data) = CURDATE()
+        LIMIT 1
+    """, (codigo,))
+    row = cursor.fetchone()
+
+    if not row or not row[0]:
+        conn.close()
+        return None
+
+    nf_numero = row[0]
+
+    # NF já cadastrada? então deixa como tá
+    cursor.execute("SELECT A01_id FROM notafiscal_01 WHERE A01_codigo = %s", (nf_numero,))
+    nf_row = cursor.fetchone()
+    if nf_row:
+        conn.close()
+        return nf_row[0]
+
+    # Inserir nova NF
+    cursor.execute("""
+        INSERT INTO notafiscal_01 (Empresa_03_A03_id, A01_codigo, A01_data)
+        VALUES (%s, %s, NOW())
+    """, (A03_id, nf_numero))
+    conn.commit()
+    nota_id = cursor.lastrowid
+    conn.close()
+    return nota_id
