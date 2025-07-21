@@ -1,6 +1,7 @@
 import mysql.connector
 from datetime import datetime
 import pandas as pd
+from conexao import conectar
 
 def conectar():
     return mysql.connector.connect(
@@ -10,7 +11,7 @@ def conectar():
         database="db_click"
     )
 #função pra inserir a nota fiscal, botei p ser chamada na função de processar bipagem, que quando bipa ele ja insere lek
-def inserir_fisco():
+def inserir_fisco(cursor):
     conn = conectar()
     cursor = conn.cursor()
     data_atual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -28,20 +29,6 @@ def inserir_fisco():
     cursor.close()
     conn.close()
     return nota_id
-
-def inserir_etiqueta(codigo, nota_id):
-    conn = conectar()
-    cursor = conn.cursor()
-    data_atual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    query = """
-        INSERT INTO etiqueta_02 (codigo, A02_data, Notafiscal_01_A01_id)
-        VALUES (%s, %s, %s)
-    """
-    cursor.execute(query, (codigo, data_atual, nota_id))
-    conn.commit()
-    cursor.close()
-    conn.close()
 
 def obter_etiquetas():
     conn = conectar()
@@ -124,3 +111,29 @@ def obter_id_nf_do_codigo(codigo, A03_id=1):
     nota_id = cursor.lastrowid
     conn.close()
     return nota_id
+
+#função p extrair o codigo do QR code, p gente poder comparar com o zpl
+def extrair_codigo_qr(texto):
+    try:
+        partes = texto.split("^")
+        for i, parte in enumerate(partes):
+            if parte == "id" and i + 2 < len(partes):
+                return partes[i + 2]
+    except:
+        pass
+    return None
+
+#insere o codigo da etiqueta e de quebra, se for QR code ele extrai o codigo dele e insere
+def inserir_etiqueta(codigo, nota_id):
+    conn = conectar()
+    cursor = conn.cursor()
+    data_atual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    codigo_extraido = extrair_codigo_qr(codigo)
+    query = """
+        INSERT INTO etiqueta_02 (codigo, A02_data, Notafiscal_01_A01_id, A02_qr_extraido)
+        VALUES (%s, %s, %s, %s)
+    """
+    cursor.execute(query, (codigo, data_atual, nota_id, codigo_extraido))
+    conn.commit()
+    cursor.close()
+    conn.close()

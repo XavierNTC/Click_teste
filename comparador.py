@@ -2,11 +2,16 @@ import streamlit as st
 import pymysql
 import pandas as pd
 import re
-from banco import conectar, inserir_comparacao_diaria
+import zipfile
+from io import BytesIO
+from banco import inserir_comparacao_diaria
+from conexao import conectar
+
 
 
 st.set_page_config(page_title="Comparação nota fiscal", layout="wide")
 
+#ele tenta encontrar o codigo de barras do banco
 def verificar_codigos(codigos):
     conn = conectar()
     cursor = conn.cursor()
@@ -24,6 +29,18 @@ def verificar_codigos(codigos):
         """
         cursor.execute(query, (codigo,))
         dados = cursor.fetchone()
+
+                # Se não encontrar, tenta no A02_qr_extraido
+        if not dados:
+            query_qr = """
+                SELECT e.A02_codigo, nf.A01_codigo AS nota_fiscal
+                FROM etiqueta_02 e
+                LEFT JOIN notafiscal_01 nf ON e.Notafiscal_01_A01_id = nf.A01_id
+                WHERE e.A02_qr_extraido = %s
+                LIMIT 1
+            """
+            cursor.execute(query_qr, (codigo,))
+            dados = cursor.fetchone()
 
         if dados:
             resultado.append({
@@ -77,6 +94,25 @@ st.title("Comparação Nota Fiscal")
 
 # Upload de arquivos ZPL
 arquivos = st.file_uploader("Envie arquivos .zpl", type="zpl", accept_multiple_files=True)
+# Deixei os dois, zpl e zip p gente testar (pode tirar o de zpl se quiser 'o de cima')
+arquivos_zip = st.file_uploader("Envie arquivos .zip contendo ZPLs", type="zip", accept_multiple_files=True)
+
+#função que descompacta o zip e nos devolve a leitura de cada zpl
+def processar_arquivos_zip(arquivos_zip):
+    todos_conteudos_zpl = []
+
+    for arquivo in arquivos_zip:
+        if arquivo.type == "application/zip":
+            with zipfile.ZipFile(arquivo) as z:
+                for nome_arquivo in z.namelist():
+                    if nome_arquivo.endswith('.zpl'):
+                        with z.open(nome_arquivo) as zpl_file:
+                            conteudo_bytes = zpl_file.read()
+                            codigo = extrair_codigo_zpl(conteudo_bytes)
+                            nf = extrair_nf(conteudo_bytes)
+                            if codigo:
+                                todos_conteudos_zpl.append({'codigo': codigo, 'fisco': nf})
+    return todos_conteudos_zpl
 
 # Função para atualizar a nota fiscal no banco
 def atualizar_nota_fiscal(codigos):
@@ -175,7 +211,13 @@ def highlight_nao_encontrado(row):
 
 st.dataframe(df_hoje.style.apply(highlight_nao_encontrado, axis=1), use_container_width=True)
 
+if arquivos_zip:
+    todos_conteudos_zpl = processar_arquivos_zip(arquivos_zip)
 
+    if todos_conteudos_zpl:
+        st.subheader("Etiquetas encontradas:")
 
-
- 
+        # Atualiza a nota fiscal no banco
+        atualizar_nota_fiscal(todos_conteudos_zpl)
+    else:
+        st.warning("Nenhum código de barras foi extraído dos arquivos .zpl.")

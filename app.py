@@ -1,7 +1,8 @@
 from contextlib import _RedirectStream
 import streamlit as st
 import pandas as pd
-from banco import obter_etiquetas, excluir_duplicados_etiquetas, inserir_etiqueta, inserir_fisco, obter_id_nf_do_codigo, conectar
+from conexao import conectar
+from banco import obter_etiquetas, excluir_duplicados_etiquetas, inserir_fisco, obter_id_nf_do_codigo, inserir_etiqueta
 from processamento import classificar_codigo
 import datetime
 
@@ -45,6 +46,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+#campo de adicionar a bipagem
 st.text_input(
     "Digite ou bip o código de barras:",
     key="codigo_bipado",
