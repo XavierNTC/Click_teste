@@ -4,7 +4,6 @@ import pandas as pd
 from banco import obter_etiquetas, excluir_duplicados_etiquetas, inserir_etiqueta, inserir_fisco
 from processamento import classificar_codigo
 import datetime
-import comparador
 
 st.set_page_config(page_title="Bipagem com Banco", layout="wide")
 st.title("Sistema de Bipagem com Banco de Dados")
@@ -46,7 +45,32 @@ st.text_input(
     placeholder="Escaneie o código de barras ou QR..."
 )
 
+
 df = obter_etiquetas()
+# Convertendo coluna de data 
+df["A02_data"] = pd.to_datetime(df["A02_data"])
+
+# Selecionar data (padrão: hoje)
+col_data, col_vazio = st.columns([1, 9])  # 1 parte pra data, 9 para o resto
+
+with col_data:
+    st.markdown("<small><strong>Data dos registros:</strong></small>", unsafe_allow_html=True)
+    data_escolhida = st.date_input(
+        label="",
+        value=datetime.date.today(),
+        label_visibility="collapsed",
+        format="DD/MM/YYYY"
+    )
+
+with col_vazio:
+        # Botão para excluir duplicados
+    if st.button("Excluir Códigos Duplicados"):
+        excluir_duplicados_etiquetas()
+        st.toast("Códigos duplicados removidos!", icon="✅")
+
+# Filtrar os dados apenas da data escolhida
+df = df[df["A02_data"].dt.date == data_escolhida]
+
 df["Tipo"] = df["codigo"].apply(classificar_codigo)
 
 
@@ -63,11 +87,11 @@ else:
     df["Duplicado"] = pd.Series([False] * len(df), index=df.index)
 
 
-def destacar_duplicados(row):
-    if row["Duplicado"]:
-        return ['background-color: #8B0000'] * len(row)
+def destacar_duplicados(linha):
+    if linha["Duplicado"]:
+        return ['background-color: #8B0000'] * len(linha)
     else:
-        return [''] * len(row)
+        return [''] * len(linha)
 
 
 col1, col2 = st.columns([7, 3])
@@ -84,14 +108,32 @@ agora = datetime.datetime.now()
 data_hora_str = agora.strftime("%d/%m/%Y %H:%M")
 
 with col2:
-    contagem_html = """
-    <div style="display: flex; flex-direction: column; gap: 14px; font-family: 'Segoe UI', sans-serif;">
-    """
     tipos_contagem = df["Tipo"].value_counts() if "Tipo" in df.columns else pd.Series(dtype=int)
+    total = tipos_contagem.sum()
 
+    # Início do HTML com f-string para incluir o total
+    contagem_html = f"""
+    <div style="display: flex; flex-direction: column; gap: 14px; font-family: 'Segoe UI', sans-serif;">
+        <div style="
+            padding: 16px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #fff;
+            background-color: #444;
+            color: white;
+        ">
+            <span style="font-size: 20px;">Total</span>
+            <span style="font-size: 34px; font-weight: bold;">{total}</span>
+        </div>
+    """
+
+    # Adiciona os cartões por tipo
     for tipo, qtd in tipos_contagem.items():
         contagem_html += f""""
-         <div style="
+        <div style="
             padding: 16px 20px;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.06);
@@ -101,19 +143,16 @@ with col2:
             border: 1px solid #fff;
             background-color: #20232a;
             color: white;
-        ""  >
+        ">
             <span style="font-size: 20px;">{tipo}</span>
             <span style="font-size: 34px; font-weight: bold;">{qtd}</span>
         </div>
         """
 
     contagem_html += "</div>"
+
+    # Renderiza o HTML final
     st.markdown(contagem_html, unsafe_allow_html=True)
 
-    st.markdown(f"<div style='color:red;'>Data e hora atual: {data_hora_str}</div>", unsafe_allow_html=True)
-
-# Botão para excluir duplicados
-if st.button("Excluir Códigos Duplicados"):
-    excluir_duplicados_etiquetas()
-    st.toast("Códigos duplicados removidos!", icon="✅")
+  #  st.markdown(f"<div style='color:red;'>Data e hora atual: {data_escolhida}</div>", unsafe_allow_html=True)
 

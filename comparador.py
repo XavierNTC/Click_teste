@@ -101,7 +101,7 @@ def atualizar_nota_fiscal(codigos):
             else:
                 st.warning(f"Código {codigo} não possui vínculo com nota fiscal no banco.")
         else:
-            st.error(f"Código {codigo} não encontrado na tabela.")
+            st.error(f"Código {codigo} não encontrado na tabela, NF {nova_nf}")
 
     conn.commit()
     cursor.close()
@@ -135,7 +135,7 @@ if arquivos:
             df_resultado = verificar_codigos(codigos)
 
             def highlight_nao_encontrado(val):
-                if val == 'NÃO ENCONTRADO':
+                if val == fisco_extraido:
                     return 'color: red; font-weight: bold'
                 return ''
 
